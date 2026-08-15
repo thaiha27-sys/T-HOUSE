@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Checklist vận hành — T-House</title>
+<meta name="theme-color" content="#1a3a2a"/>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="icon" href="./icon-192.png"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0;background:#edeae2;color:#16231b;
+    font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;font-size:16px;line-height:1.55}
+  .wrap{max-width:560px;margin:0 auto;padding:0 0 90px}
+  header{background:linear-gradient(135deg,#0f2a1c,#1a3a2a);color:#fff;padding:16px 18px}
+  header h1{margin:0;font-size:18px;font-weight:700}
+  header p{margin:3px 0 0;font-size:12px;color:rgba(255,255,255,.6)}
+  .than{padding:14px}
+  .the{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:12px;
+    box-shadow:0 2px 12px rgba(26,58,42,.07)}
+  .the h2{margin:0 0 10px;font-size:14px;font-weight:700;color:#1a3a2a;
+    padding-bottom:8px;border-bottom:1px solid #e8f0e8}
+  .nhan{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;
+    color:#5a7a6a;font-weight:700;margin-bottom:4px}
+  .kh{display:flex;justify-content:space-between;gap:10px;font-size:14px;padding:4px 0}
+  .kh span:first-child{color:#888}
+  .kh span:last-child{font-weight:600;text-align:right}
+  a.goi{display:block;background:#1a3a2a;color:#fff;text-align:center;text-decoration:none;
+    border-radius:11px;padding:13px;font-weight:700;margin-top:10px;font-size:15px}
+  .dot{display:flex;gap:8px;margin-bottom:12px}
+  .dot button{flex:1;min-height:52px;border-radius:12px;border:2px solid #d8e8d8;background:#fff;
+    font-size:14px;font-weight:700;color:#5a7a6a;cursor:pointer;font-family:inherit}
+  .dot button[aria-pressed="true"]{background:#1a3a2a;border-color:#1a3a2a;color:#fff}
+  .muc{border:1px solid #e6ece6;border-radius:12px;padding:11px 12px;margin-bottom:9px;background:#fbfdfb}
+  .muc.nang{border-color:#f0c9c2;background:#fffaf9}
+  .muc p{margin:0 0 9px;font-size:14.5px;font-weight:600;line-height:1.4}
+  .muc .tru{font-size:11px;color:#b06a5c;font-weight:400}
+  .caps{display:flex;gap:8px}
+  .caps button{flex:1;min-height:46px;border-radius:10px;border:2px solid #dfe6df;background:#fff;
+    font-size:14px;font-weight:700;cursor:pointer;color:#7b877f;font-family:inherit}
+  .caps button.dat[aria-pressed="true"]{background:#e8f6ed;border-color:#2f6b45;color:#1e6b3f}
+  .caps button.chua[aria-pressed="true"]{background:#fdecea;border-color:#c0392b;color:#a5281b}
+  input,textarea,select{width:100%;border-radius:10px;border:1px solid #d8e8d8;padding:11px 13px;
+    font-size:16px;font-family:inherit;color:#16231b;background:#fff;outline:none}
+  textarea{resize:vertical}
+  .doi{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+  .day{position:fixed;left:0;right:0;bottom:0;background:rgba(237,234,226,.97);
+    border-top:1px solid #d3cfc1;padding:11px 14px;backdrop-filter:blur(6px)}
+  .day .tt{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px}
+  .day b{color:#c0392b}
+  button.gui{width:100%;min-height:52px;border:none;border-radius:13px;font-size:16px;font-weight:700;
+    background:linear-gradient(135deg,#1a3a2a,#2d5a3a);color:#fff;cursor:pointer;font-family:inherit}
+  button.gui:disabled{opacity:.55}
+  .bao{padding:12px 14px;border-radius:11px;font-size:14px;margin-bottom:12px;line-height:1.55}
+  .bao.ok{background:#e8f6ed;color:#1e6b3f;border:1px solid #bfe6cf}
+  .bao.loi{background:#fdecea;color:#a5281b;border:1px solid #f3c9c4}
+  .mo{text-align:center;padding:56px 20px;color:#7b877f}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Checklist vận hành</h1>
+    <p id="phu">Đang tải…</p>
+  </header>
+  <div class="than" id="than"><div class="mo">Đang tải thông tin booking…</div></div>
+</div>
+
+<script src="./cauhinh.js"></script>
+<script>
+(function(){
+  "use strict";
+  var API = window.API_CHATLUONG || "";
+  var maBooking = new URLSearchParams(location.search).get("id") || "";
+  var than = document.getElementById("than"), phu = document.getElementById("phu");
+  var BK = null, MUC = [], QUANGIA = [], dot = "truoc", traLoi = {};
+
+  function goi(action, thamSo){
+    return new Promise(function(giaiQuyet){
+      if(!API){ giaiQuyet({success:false,error:"Chưa cấu hình đường dẫn trong file cauhinh.js"}); return; }
+      var cb = "cb_"+Math.random().toString(36).slice(2);
+      var s = document.createElement("script"), xong = false;
+      var don = function(){ try{delete window[cb];}catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
+      var hetGio = setTimeout(function(){ if(!xong){xong=true;don();giaiQuyet({success:false,error:"Quá thời gian chờ — kiểm tra mạng"});} }, 25000);
+      window[cb] = function(d){ if(xong)return; xong=true; clearTimeout(hetGio); don(); giaiQuyet(d); };
+      s.onerror = function(){ if(xong)return; xong=true; clearTimeout(hetGio); don(); giaiQuyet({success:false,error:"Không gọi được máy chủ"}); };
+      s.src = API+"?action="+encodeURIComponent(action)+"&callback="+cb+(thamSo||"");
+      document.head.appendChild(s);
+    });
+  }
+  function esc(t){ return String(t==null?"":t).replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  function fNgay(s){ if(!s) return "—"; var d=new Date(s);
+    return ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear(); }
+
+  function loi(t){ than.innerHTML = '<div class="bao loi">'+esc(t)+'</div>'; }
+
+  function ve(){
+    var mucDot = MUC.filter(function(m){ return m.dot===dot; });
+    var soDT = (BK.soDT||"").replace(/[^\d+]/g,"");
+    var h = "";
+
+    h += '<div class="the"><h2>👤 Khách của booking này</h2>'
+      +  '<div class="kh"><span>Mã booking</span><span>'+esc(BK.id)+'</span></div>'
+      +  '<div class="kh"><span>Căn</span><span>'+esc((BK.cacCan||[]).join(" + "))+'</span></div>'
+      +  '<div class="kh"><span>Khách</span><span>'+esc(BK.tenKhach)+'</span></div>'
+      +  '<div class="kh"><span>Check-in</span><span>'+fNgay(BK.checkin)+'</span></div>'
+      +  '<div class="kh"><span>Check-out</span><span>'+fNgay(BK.checkout)+'</span></div>'
+      +  '<div class="kh"><span>Số khách</span><span>'+BK.nguoiLon+' NL'+(BK.treEm?' + '+BK.treEm+' TE':'')+'</span></div>'
+      +  (soDT ? '<a class="goi" href="tel:'+esc(soDT)+'">📞 Gọi khách ngay — '+esc(BK.soDT)+'</a>' : '')
+      +  '</div>';
+
+    h += '<div class="dot">'
+      +  '<button type="button" data-dot="truoc" aria-pressed="'+(dot==="truoc")+'">① Trước check-in</button>'
+      +  '<button type="button" data-dot="sau" aria-pressed="'+(dot==="sau")+'">② Sau check-out</button>'
+      +  '</div>';
+
+    h += '<div class="the"><h2>👩 Ai đang làm</h2><span class="nhan">Quản gia</span><select id="qg">'
+      +  '<option value="">— Chọn tên —</option>'
+      +  QUANGIA.map(function(t){ return '<option'+(t===traLoi.__qg?' selected':'')+'>'+esc(t)+'</option>'; }).join("")
+      +  '</select></div>';
+
+    if(dot==="truoc"){
+      h += '<div class="the"><h2>⏰ Liên lạc với khách</h2><div class="doi">'
+        +  '<div><span class="nhan">Giờ đã gọi</span><input id="gioGoi" type="time" value="'+esc(traLoi.__gioGoi||"")+'"/></div>'
+        +  '<div><span class="nhan">Khách báo đến</span><input id="gioDen" type="time" value="'+esc(traLoi.__gioDen||"")+'"/></div>'
+        +  '</div></div>';
+    }
+
+    h += '<div class="the"><h2>'+(dot==="truoc"?"✅ Kiểm tra trước khi khách đến":"🔒 Kiểm tra sau khi khách trả nhà")+'</h2>';
+    mucDot.forEach(function(m){
+      var v = traLoi[m.ma];
+      h += '<div class="muc'+(m.diem>=15?' nang':'')+'"><p>'+esc(m.nhan)
+        +  ' <span class="tru">(chưa đạt: −'+m.diem+')</span></p><div class="caps">'
+        +  '<button type="button" class="dat" data-ma="'+m.ma+'" data-v="1" aria-pressed="'+(v===true)+'">Đạt</button>'
+        +  '<button type="button" class="chua" data-ma="'+m.ma+'" data-v="0" aria-pressed="'+(v===false)+'">Chưa</button>'
+        +  '</div></div>';
+    });
+    h += '</div>';
+
+    h += '<div class="the"><h2>📝 Ghi chú</h2>'
+      +  '<textarea id="ghiChu" rows="3" placeholder="Hỏng hóc, đồ thiếu, việc đã xử lý…">'+esc(traLoi.__ghiChu||"")+'</textarea></div>';
+
+    h += '<div id="ketQua"></div>';
+    than.innerHTML = h;
+
+    var conThieu = mucDot.filter(function(m){ return traLoi[m.ma]===undefined; }).length;
+    var truDiem = mucDot.reduce(function(s,m){ return s + (traLoi[m.ma]===false ? m.diem : 0); }, 0);
+    // Dùng LẠI thanh dưới, không tạo mới mỗi lần vẽ — nếu không sẽ chồng nhiều thanh
+    // lên nhau và thanh nhìn thấy là thanh cũ với số liệu cũ.
+    var day = document.querySelector(".day");
+    if(!day){ day = document.createElement("div"); day.className = "day"; document.body.appendChild(day); }
+    day.innerHTML = '<div class="tt"><span>'+(conThieu? "Còn "+conThieu+" mục chưa chọn" : "Đã chọn đủ "+mucDot.length+" mục")
+      + '</span><span>Điểm trừ: <b>'+truDiem+'</b></span></div>'
+      + '<button class="gui" id="nutGui"'+(conThieu?' disabled':'')+'>Gửi checklist</button>';
+  }
+
+  // Gắn MỘT LẦN ở cấp document. Gắn bên trong ve() sẽ cộng dồn trình xử lý,
+  // bấm một cái chạy nhiều lần.
+  document.addEventListener("click", function(e){
+    var b = e.target.closest && e.target.closest("button[data-ma]");
+    if(b){ traLoi[b.dataset.ma] = b.dataset.v==="1"; luuTam(); ve(); return; }
+    var d = e.target.closest && e.target.closest("button[data-dot]");
+    if(d && d.dataset.dot!==dot){ luuTam(); dot = d.dataset.dot; ve(); return; }
+    if(e.target.id === "nutGui") gui();
+  });
+
+  function luuTam(){
+    var g;
+    if((g=document.getElementById("qg"))) traLoi.__qg = g.value;
+    if((g=document.getElementById("gioGoi"))) traLoi.__gioGoi = g.value;
+    if((g=document.getElementById("gioDen"))) traLoi.__gioDen = g.value;
+    if((g=document.getElementById("ghiChu"))) traLoi.__ghiChu = g.value;
+  }
+
+  function gui(){
+    luuTam();
+    if(!traLoi.__qg){ alert("Chọn tên quản gia trước khi gửi."); return; }
+    var nut = document.getElementById("nutGui");
+    nut.disabled = true; nut.textContent = "Đang gửi…";
+    var muc = {};
+    MUC.filter(function(m){ return m.dot===dot; }).forEach(function(m){ muc[m.ma] = traLoi[m.ma]; });
+    var payload = {
+      maBooking: BK.id, maCan: (BK.cacCan||[]).join(" + "), dot: dot,
+      checkin: BK.checkin, tenKhach: BK.tenKhach, soDT: BK.soDT || "",
+      quanGia: traLoi.__qg, gioGoi: traLoi.__gioGoi || "", gioDen: traLoi.__gioDen || "",
+      muc: muc, ghiChu: traLoi.__ghiChu || ""
+    };
+    goi("guiChecklist", "&payload="+encodeURIComponent(JSON.stringify(payload))).then(function(r){
+      var kq = document.getElementById("ketQua");
+      if(r && r.success){
+        kq.innerHTML = '<div class="bao ok"><strong>✅ Đã gửi checklist '
+          + (dot==="truoc"?"trước check-in":"sau check-out")+'.</strong><br>'
+          + (r.data && r.data.ghiDe ? "Đã cập nhật đè lên lần gửi trước của đợt này." : "Đã ghi vào sổ theo dõi.")
+          + '</div>';
+        nut.textContent = "Gửi lại"; nut.disabled = false;
+        kq.scrollIntoView({behavior:"smooth", block:"center"});
+      }else{
+        kq.innerHTML = '<div class="bao loi">❌ Không gửi được: '+esc((r&&r.error)||"không rõ nguyên nhân")+'</div>';
+        nut.textContent = "Thử gửi lại"; nut.disabled = false;
+      }
+    });
+  }
+
+  // ── khởi động ──
+  if(!maBooking){ phu.textContent="Thiếu mã booking"; loi("Link thiếu mã booking. Mở đúng link có dạng …/checklist.html?id=BK2026xxxxxx"); return; }
+  phu.textContent = "Mã booking " + maBooking;
+  Promise.all([goi("mucChecklist"), goi("bookingQuanGia","&id="+encodeURIComponent(maBooking))])
+    .then(function(kq){
+      var a = kq[0], b = kq[1];
+      if(!a || !a.success){ loi("Không tải được danh mục: "+((a&&a.error)||"không rõ")); return; }
+      MUC = a.data.muc; QUANGIA = a.data.quanGia || [];
+      if(!b || !b.success){ loi("Không tải được booking: "+((b&&b.error)||"không rõ")); return; }
+      if(!b.data){ loi("Không tìm thấy booking "+maBooking+" trong sổ. Kiểm tra lại mã."); return; }
+      BK = b.data;
+      if(!QUANGIA.length) QUANGIA = ["(chưa khai trong sheet DM_QUANGIA)"];
+      // sau ngày check-out thì mặc định mở sẵn đợt 2
+      if(BK.checkout && new Date(BK.checkout) <= new Date()) dot = "sau";
+      phu.textContent = BK.tenKhach + " · " + maBooking;
+      ve();
+    });
+})();
+</script>
+</body>
+</html>

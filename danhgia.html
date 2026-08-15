@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Đánh giá kỳ nghỉ — T-House Villa</title>
+<meta name="theme-color" content="#1a3a2a"/>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="icon" href="./icon-192.png"/>
+<style>
+  *,*::before,*::after{box-sizing:border-box}
+  body{margin:0;background:#edeae2;color:#16231b;
+    font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;font-size:16px;line-height:1.55}
+  .wrap{max-width:560px;margin:0 auto;padding:0 0 96px}
+  header{background:linear-gradient(135deg,#0f2a1c,#1a3a2a);color:#fff;padding:22px 18px 20px;text-align:center}
+  header h1{margin:0;font-size:21px;font-weight:700;letter-spacing:.3px}
+  header p{margin:6px 0 0;font-size:13px;color:rgba(255,255,255,.7);line-height:1.5}
+  .vach{height:3px;background:linear-gradient(90deg,transparent,#b8956a,#d4af7a,#b8956a,transparent)}
+  .than{padding:14px}
+  .the{background:#fff;border-radius:14px;padding:15px 16px;margin-bottom:12px;
+    box-shadow:0 2px 12px rgba(26,58,42,.07)}
+  .the h2{margin:0 0 12px;font-size:14px;font-weight:700;color:#1a3a2a;
+    padding-bottom:8px;border-bottom:1px solid #e8f0e8}
+  .tc{padding:9px 0}
+  .tc:not(:last-child){border-bottom:1px solid #f4f2ec}
+  .tc p{margin:0 0 8px;font-size:15px;font-weight:600}
+  .sao{display:flex;gap:6px}
+  .sao button{flex:1;min-height:50px;border-radius:11px;border:2px solid #e6e2d6;background:#fbfaf7;
+    font-size:21px;cursor:pointer;line-height:1;padding:0;font-family:inherit;color:#cfc9bb}
+  .sao button[aria-pressed="true"]{background:#fdf4e3;border-color:#d4af7a;color:#c9932f}
+  .chung .sao button{min-height:58px;font-size:25px}
+  .nhan{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;
+    color:#5a7a6a;font-weight:700;margin:10px 0 5px}
+  textarea,select{width:100%;border-radius:10px;border:1px solid #d8e8d8;padding:11px 13px;
+    font-size:16px;font-family:inherit;color:#16231b;background:#fff;outline:none}
+  textarea{resize:vertical}
+  .ql{display:flex;gap:8px}
+  .ql button{flex:1;min-height:48px;border-radius:11px;border:2px solid #dfe6df;background:#fff;
+    font-size:14px;font-weight:700;color:#7b877f;cursor:pointer;font-family:inherit}
+  .ql button[aria-pressed="true"]{background:#1a3a2a;border-color:#1a3a2a;color:#fff}
+  .day{position:fixed;left:0;right:0;bottom:0;background:rgba(237,234,226,.97);
+    border-top:1px solid #d3cfc1;padding:11px 14px;backdrop-filter:blur(6px)}
+  .day .tt{text-align:center;font-size:13px;color:#5a7a6a;margin-bottom:8px}
+  button.gui{width:100%;min-height:54px;border:none;border-radius:13px;font-size:16px;font-weight:700;
+    background:linear-gradient(135deg,#b8956a,#c8a578);color:#fff;cursor:pointer;font-family:inherit}
+  button.gui:disabled{opacity:.5}
+  .bao{padding:14px 16px;border-radius:12px;font-size:15px;line-height:1.6}
+  .bao.ok{background:#e8f6ed;color:#1e6b3f;border:1px solid #bfe6cf}
+  .bao.loi{background:#fdecea;color:#a5281b;border:1px solid #f3c9c4}
+  .mo{text-align:center;padding:56px 20px;color:#7b877f}
+  .xong{text-align:center;padding:44px 22px}
+  .xong .to{font-size:46px;margin-bottom:10px}
+  .xong h2{margin:0 0 8px;font-size:20px;color:#1a3a2a}
+  .xong p{margin:0;color:#5a7a6a;font-size:15px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Cảm ơn Quý khách</h1>
+    <p id="phu">Xin dành 1 phút chấm điểm để chúng tôi phục vụ tốt hơn</p>
+  </header>
+  <div class="vach"></div>
+  <div class="than" id="than"><div class="mo">Đang tải…</div></div>
+</div>
+
+<script src="./cauhinh.js"></script>
+<script>
+(function(){
+  "use strict";
+  var API = window.API_CHATLUONG || "";
+  var maBooking = new URLSearchParams(location.search).get("id") || "";
+  var than = document.getElementById("than"), phu = document.getElementById("phu");
+  var BK = null, TC = [], diem = {}, chung = 0, quayLai = "";
+
+  function goi(action, thamSo){
+    return new Promise(function(giaiQuyet){
+      if(!API){ giaiQuyet({success:false,error:"Chưa cấu hình đường dẫn trong cauhinh.js"}); return; }
+      var cb = "cb_"+Math.random().toString(36).slice(2);
+      var s = document.createElement("script"), xong = false;
+      var don = function(){ try{delete window[cb];}catch(e){} if(s.parentNode) s.parentNode.removeChild(s); };
+      var hetGio = setTimeout(function(){ if(!xong){xong=true;don();giaiQuyet({success:false,error:"Quá thời gian chờ"});} }, 25000);
+      window[cb] = function(d){ if(xong)return; xong=true; clearTimeout(hetGio); don(); giaiQuyet(d); };
+      s.onerror = function(){ if(xong)return; xong=true; clearTimeout(hetGio); don(); giaiQuyet({success:false,error:"Không gọi được máy chủ"}); };
+      s.src = API+"?action="+encodeURIComponent(action)+"&callback="+cb+(thamSo||"");
+      document.head.appendChild(s);
+    });
+  }
+  function esc(t){ return String(t==null?"":t).replace(/[&<>"]/g,function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+  function fNgay(s){ if(!s) return ""; var d=new Date(s);
+    return ("0"+d.getDate()).slice(-2)+"/"+("0"+(d.getMonth()+1)).slice(-2)+"/"+d.getFullYear(); }
+  function saoHtml(khoa, val, lop){
+    var h = '<div class="sao'+(lop?" "+lop:"")+'">';
+    for(var i=1;i<=5;i++) h += '<button type="button" data-k="'+khoa+'" data-d="'+i+'" aria-pressed="'
+      + (val===i) + '" aria-label="'+i+' sao">'+(val>=i?"★":"☆")+'</button>';
+    return h+'</div>';
+  }
+
+  function ve(){
+    var h = "";
+    h += '<div class="the"><h2>⭐ Chấm điểm từng phần</h2>';
+    TC.forEach(function(t){
+      h += '<div class="tc"><p>'+esc(t.nhan)+'</p>'+saoHtml(t.khoa, diem[t.khoa]||0)+'</div>';
+    });
+    h += '</div>';
+
+    h += '<div class="the chung"><h2>💚 Đánh giá chung kỳ nghỉ</h2>'
+      +  saoHtml("__chung", chung) + '</div>';
+
+    h += '<div class="the"><h2>💬 Góp ý</h2>'
+      +  '<span class="nhan">Điều làm Quý khách khó chịu nhất</span>'
+      +  '<textarea id="khoChiu" rows="3" placeholder="Nói thật giúp chúng tôi — ví dụ: không ai gọi trước, phòng chưa sạch, cửa không khóa…"></textarea>'
+      +  '<span class="nhan">Điều Quý khách thích nhất</span>'
+      +  '<textarea id="thich" rows="2" placeholder="Chúng tôi sẽ giữ và phát huy"></textarea>'
+      +  '<span class="nhan">Quý khách có quay lại không?</span><div class="ql">'
+      +  ['Có','Chưa chắc','Không'].map(function(x){
+           return '<button type="button" data-ql="'+x+'" aria-pressed="'+(quayLai===x)+'">'+x+'</button>'; }).join("")
+      +  '</div></div>';
+
+    h += '<div id="ketQua"></div>';
+    than.innerHTML = h;
+
+    var daCham = TC.filter(function(t){ return diem[t.khoa]; }).length;
+    var du = daCham===TC.length && chung>0;
+    var day = document.querySelector(".day");
+    if(!day){ day = document.createElement("div"); day.className="day"; document.body.appendChild(day); }
+    day.innerHTML = '<div class="tt">'+(du ? "Cảm ơn Quý khách — bấm gửi giúp chúng tôi"
+      : "Còn "+((TC.length-daCham)+(chung?0:1))+" mục chưa chấm")+'</div>'
+      + '<button class="gui" id="nutGui"'+(du?"":" disabled")+'>Gửi đánh giá</button>';
+    document.getElementById("nutGui").addEventListener("click", gui);
+  }
+
+  function gui(){
+    var nut = document.getElementById("nutGui");
+    nut.disabled = true; nut.textContent = "Đang gửi…";
+    var payload = {
+      maBooking: BK.id, maCan: (BK.cacCan||[]).join(" + "),
+      checkout: BK.checkout, tenKhach: BK.tenKhach, quanGia: "",
+      diem: diem, chung: chung,
+      khoChiu: (document.getElementById("khoChiu")||{}).value || "",
+      thich: (document.getElementById("thich")||{}).value || "",
+      quayLai: quayLai
+    };
+    goi("guiDanhGia", "&payload="+encodeURIComponent(JSON.stringify(payload))).then(function(r){
+      if(r && r.success){
+        document.querySelector(".day").remove();
+        than.innerHTML = '<div class="the"><div class="xong"><div class="to">🌿</div>'
+          + '<h2>Đã nhận đánh giá của Quý khách</h2>'
+          + '<p>Cảm ơn Quý khách rất nhiều. Mọi góp ý đều được chủ nhà đọc trực tiếp '
+          + 'và dùng để chấn chỉnh đội ngũ phục vụ.<br><br>Hẹn gặp lại Quý khách tại T-House Villa!</p>'
+          + '</div></div>';
+        window.scrollTo({top:0, behavior:"smooth"});
+      }else{
+        document.getElementById("ketQua").innerHTML =
+          '<div class="bao loi">Không gửi được: '+esc((r&&r.error)||"không rõ nguyên nhân")
+          +'<br>Quý khách thử lại giúp, hoặc nhắn trực tiếp cho chủ nhà.</div>';
+        nut.textContent = "Thử gửi lại"; nut.disabled = false;
+      }
+    });
+  }
+
+  document.addEventListener("click", function(e){
+    var s = e.target.closest("button[data-k]");
+    if(s){ var k=s.dataset.k, d=Number(s.dataset.d);
+      if(k==="__chung") chung = d; else diem[k] = d;
+      ve(); return; }
+    var q = e.target.closest("button[data-ql]");
+    if(q){ quayLai = q.dataset.ql; ve(); }
+  });
+
+  if(!maBooking){ than.innerHTML = '<div class="bao loi">Link thiếu mã booking. Quý khách vui lòng quét lại mã QR trên bản xác nhận đặt phòng.</div>'; return; }
+  Promise.all([goi("mucChecklist"), goi("bookingKhach","&id="+encodeURIComponent(maBooking))])
+    .then(function(kq){
+      var a = kq[0], b = kq[1];
+      if(!a || !a.success){ than.innerHTML='<div class="bao loi">Không tải được biểu mẫu: '+esc(a&&a.error)+'</div>'; return; }
+      TC = a.data.tieuChi;
+      if(!b || !b.success || !b.data){ than.innerHTML='<div class="bao loi">Không tìm thấy booking này. Quý khách vui lòng quét lại mã QR trên bản xác nhận.</div>'; return; }
+      BK = b.data;
+      phu.textContent = esc(BK.tenKhach) + " · " + (BK.cacCan||[]).join(" + ")
+        + (BK.checkout ? " · trả nhà " + fNgay(BK.checkout) : "");
+      ve();
+    });
+})();
+</script>
+</body>
+</html>
