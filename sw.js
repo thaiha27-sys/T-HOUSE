@@ -1,7 +1,7 @@
 ﻿/*  Service worker: giữ vỏ ứng dụng trong máy để mở được cả khi mạng chập chờn.
     KHÔNG bao giờ cache lời gọi Google Apps Script — dữ liệu booking phải luôn lấy mới.
     Đổi PHIEN_BAN mỗi lần deploy bản mới để máy người dùng tự cập nhật.  */
-const PHIEN_BAN = "thouse-v5";
+const PHIEN_BAN = "thouse-v6";
 const VO_UNG_DUNG = [
   "./",
   "./index.html",
